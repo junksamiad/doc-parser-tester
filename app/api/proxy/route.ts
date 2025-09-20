@@ -18,7 +18,7 @@ export async function POST(request: NextRequest) {
       headers['x-api-key'] = apiKey;
     }
 
-    let body: any;
+    let body: FormData | string;
 
     // Handle different content types
     if (contentType.includes('multipart/form-data')) {
