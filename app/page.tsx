@@ -350,17 +350,20 @@ export default function Home() {
                   </div>
                 </label>
 
-                <label className="flex items-center space-x-3 cursor-pointer">
+                <label className={`flex items-center space-x-3 ${!file ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
                   <input
                     type="radio"
                     value="url"
                     checked={sendMethod === 'url'}
                     onChange={(e) => setSendMethod(e.target.value as SendMethod)}
                     className="w-4 h-4 text-blue-600 focus:ring-blue-500"
+                    disabled={!file}
                   />
                   <div>
                     <span className="font-medium text-slate-900">Storage URL</span>
-                    <p className="text-sm text-slate-600">Upload to storage and send URL</p>
+                    <p className="text-sm text-slate-600">
+                      {!file ? 'Upload a file first to use this option' : 'Upload to storage and send URL'}
+                    </p>
                   </div>
                 </label>
 
