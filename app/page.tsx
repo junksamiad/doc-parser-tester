@@ -1,7 +1,7 @@
 'use client';
 
-import { useState, useCallback } from 'react';
-import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X } from 'lucide-react';
+import { useState, useCallback, useEffect, useRef } from 'react';
+import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
 
@@ -27,6 +27,43 @@ export default function Home() {
   const [error, setError] = useState<string>('');
   const [storageUrl, setStorageUrl] = useState<string>('');
   const [useProxy, setUseProxy] = useState<boolean>(true);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const startTimeRef = useRef<number>(0);
+
+  // Timer effect
+  useEffect(() => {
+    if (isLoading) {
+      startTimeRef.current = Date.now();
+      timerRef.current = setInterval(() => {
+        setElapsedTime(Date.now() - startTimeRef.current);
+      }, 100);
+    } else {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, [isLoading]);
+
+  const formatElapsedTime = (ms: number) => {
+    const totalSeconds = Math.floor(ms / 1000);
+    const milliseconds = Math.floor((ms % 1000) / 100);
+
+    if (totalSeconds < 60) {
+      return `${totalSeconds}.${milliseconds}s`;
+    }
+
+    const minutes = Math.floor(totalSeconds / 60);
+    const seconds = totalSeconds % 60;
+    return `${minutes}m ${seconds}.${milliseconds}s`;
+  };
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -107,6 +144,7 @@ export default function Home() {
     setIsLoading(true);
     setError('');
     setResponse(null);
+    setElapsedTime(0);
 
     try {
       let requestBody: FormData | string;
@@ -384,19 +422,25 @@ export default function Home() {
               <button
                 onClick={sendRequest}
                 disabled={!file || !endpointUrl || isLoading}
-                className="w-full mt-6 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-colors"
+                className="w-full mt-6 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
               >
-                {isLoading ? (
-                  <>
-                    <Loader2 className="w-5 h-5 animate-spin" />
-                    Processing...
-                  </>
-                ) : (
-                  <>
-                    <Send className="w-5 h-5" />
-                    Send Request
-                  </>
-                )}
+                <div className="flex items-center justify-center gap-2">
+                  {isLoading ? (
+                    <>
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                      <span>Processing...</span>
+                      <div className="flex items-center gap-1 ml-2">
+                        <Clock className="w-4 h-4" />
+                        <span className="font-mono text-sm">{formatElapsedTime(elapsedTime)}</span>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Send className="w-5 h-5" />
+                      <span>Send Request</span>
+                    </>
+                  )}
+                </div>
               </button>
             </div>
           </div>
