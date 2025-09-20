@@ -1,36 +1,166 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Document Parser Tester
 
-## Getting Started
+A modern web application for testing document parsing APIs, specifically designed for passport document verification endpoints. Built with Next.js and TypeScript.
 
-First, run the development server:
+## Features
 
+- **Multiple Upload Methods**:
+  - JSON with Base64 encoding
+  - Multipart form data (raw file upload)
+  - Storage URL (upload to Vercel Blob and send URL)
+
+- **Drag & Drop File Upload**: Easy file selection with drag and drop support
+- **API Configuration**: Flexible endpoint URL and API key configuration
+- **Response Viewer**: Clear, formatted display of API responses
+- **File Support**: PDF, JPG, PNG, WebP, and HEIC files (max 20MB)
+
+## Quick Start
+
+### Local Development
+
+1. Install dependencies:
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2. Run the development server:
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+3. Open [http://localhost:3000](http://localhost:3000)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## Deployment
 
-## Learn More
+### Deploy to Vercel (Recommended)
 
-To learn more about Next.js, take a look at the following resources:
+1. **Push to GitHub**
+2. **Import to Vercel**:
+   - Go to [vercel.com/new](https://vercel.com/new)
+   - Import your repository
+   - Click "Deploy"
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. **Configure Blob Storage** (Optional - for URL upload method):
+   - Go to your Vercel project dashboard
+   - Navigate to Storage tab
+   - Create a new Blob store
+   - Copy the `BLOB_READ_WRITE_TOKEN`
+   - Add it to your environment variables
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Deploy to Netlify
 
-## Deploy on Vercel
+For static export (without storage URL functionality):
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+1. Build the static export:
+```bash
+npm run build
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Deploy the `.next` directory to Netlify
+
+## Environment Variables
+
+Copy `.env.local.example` to `.env.local` for local development:
+
+```bash
+cp .env.local.example .env.local
+```
+
+### Available Variables
+
+- `BLOB_READ_WRITE_TOKEN`: Vercel Blob storage token for URL upload method (optional)
+
+## Usage
+
+1. **Configure API Endpoint**: Enter your document parser API endpoint URL
+2. **Add API Key**: If your API requires authentication
+3. **Upload Document**: Drag & drop or click to select a passport document
+4. **Choose Send Method**:
+   - **JSON/Base64**: Encodes file as base64 in JSON payload
+   - **Form Data**: Sends raw file as multipart/form-data
+   - **Storage URL**: Uploads to Vercel Blob and sends URL (requires configuration)
+5. **Send Request**: Click to test your API
+6. **View Response**: See formatted JSON response with metadata
+
+## API Contract
+
+The tester is designed for passport parsing endpoints that accept:
+
+### Request Formats
+
+1. **Multipart Form Data**:
+   - Field: `document` (file)
+   - Field: `document_type` (string: "passport")
+
+2. **JSON with Base64**:
+   ```json
+   {
+     "document": "base64_encoded_string",
+     "document_type": "passport"
+   }
+   ```
+
+3. **JSON with URL**:
+   ```json
+   {
+     "document_url": "https://storage.url/file.pdf",
+     "document_type": "passport"
+   }
+   ```
+
+### Headers
+- `x-api-key`: API authentication (optional)
+- `Content-Type`: Set automatically based on method
+
+## Development
+
+### Tech Stack
+- Next.js 15 with App Router
+- TypeScript
+- Tailwind CSS
+- Lucide React Icons
+- Vercel Blob Storage
+
+### Project Structure
+```
+doc-parser-tester/
+├── app/
+│   ├── page.tsx           # Main application page
+│   ├── api/
+│   │   └── upload/
+│   │       └── route.ts   # Storage upload endpoint
+│   └── globals.css        # Global styles
+├── public/                # Static assets
+└── package.json          # Dependencies
+```
+
+## Testing Your Endpoint
+
+The application is pre-configured to test against `http://localhost:3000/api/v1/passport`. You can change this to your actual endpoint URL.
+
+### Example Response
+```json
+{
+  "success": true,
+  "data": {
+    "passportAttributes": {
+      "category": "PASSPORT",
+      "attribute_types": {
+        "personal_information": {...},
+        "document_details": {...},
+        "validity_status": {...}
+      }
+    }
+  },
+  "metadata": {
+    "processingTime": "2.5s",
+    "cost": {
+      "formattedCost": "$0.002289"
+    }
+  }
+}
+```
+
+## License
+
+MIT
