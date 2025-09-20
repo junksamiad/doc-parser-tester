@@ -48,6 +48,7 @@ export default function Home() {
       if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
         setFile(file);
         setError('');
+        setStorageUrl(''); // Clear storage URL when new file is selected
       } else {
         setError('Please upload a PDF or image file (JPG, PNG)');
       }
@@ -61,6 +62,7 @@ export default function Home() {
       if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
         setFile(file);
         setError('');
+        setStorageUrl(''); // Clear storage URL when new file is selected
       } else {
         setError('Please upload a PDF or image file (JPG, PNG)');
       }
@@ -285,7 +287,10 @@ export default function Home() {
                       <p className="text-sm text-slate-600">{formatFileSize(file.size)}</p>
                     </div>
                     <button
-                      onClick={() => setFile(null)}
+                      onClick={() => {
+                        setFile(null);
+                        setStorageUrl('');
+                      }}
                       className="text-sm text-red-600 hover:text-red-700 flex items-center mx-auto gap-1"
                     >
                       <X className="w-4 h-4" />
@@ -367,18 +372,11 @@ export default function Home() {
                   </div>
                 </label>
 
-                {sendMethod === 'url' && (
-                  <div className="mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg">
-                    <p className="text-sm text-amber-800">
-                      <strong>Note:</strong> Configure storage in /api/upload or enter URL manually below:
+                {sendMethod === 'url' && storageUrl && (
+                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                    <p className="text-sm text-green-800">
+                      <strong>Uploaded URL:</strong> {storageUrl}
                     </p>
-                    <input
-                      type="text"
-                      value={storageUrl}
-                      onChange={(e) => setStorageUrl(e.target.value)}
-                      className="w-full mt-2 px-3 py-1.5 text-sm border border-amber-300 rounded focus:outline-none focus:ring-2 focus:ring-amber-500"
-                      placeholder="https://storage.example.com/file.pdf"
-                    />
                   </div>
                 )}
               </div>
