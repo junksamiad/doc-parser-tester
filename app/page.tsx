@@ -204,6 +204,11 @@ export default function Home() {
 
       if (sendMethod === 'base64') {
         // Convert file to base64
+        if (!file) {
+          setError('File is required for base64 method');
+          setIsLoading(false);
+          return;
+        }
         const reader = new FileReader();
         const base64 = await new Promise<string>((resolve, reject) => {
           reader.onload = () => {
@@ -224,6 +229,11 @@ export default function Home() {
         requestBody = JSON.stringify(payload);
       } else if (sendMethod === 'formdata') {
         // Send as multipart form data
+        if (!file) {
+          setError('File is required for formdata method');
+          setIsLoading(false);
+          return;
+        }
         const formData = new FormData();
         formData.append('document', file);
         if (businessId) {
