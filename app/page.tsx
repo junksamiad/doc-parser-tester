@@ -39,7 +39,7 @@ export default function Home() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
   const [webhookPayload, setWebhookPayload] = useState<WebhookPayload | null>(null);
-  const [isPolling, setIsPolling] = useState<boolean>(false);
+  const [isPolling, setIsPolling] = useState<boolean>(true);
 
   // Timer effect
   useEffect(() => {
