@@ -171,9 +171,17 @@ export default function Home() {
   };
 
   const sendRequest = async () => {
-    if (!file) {
-      setError('Please select a file');
-      return;
+    // Validate based on send method
+    if (sendMethod === 'url') {
+      if (!manualUrl) {
+        setError('Please enter a document URL');
+        return;
+      }
+    } else {
+      if (!file) {
+        setError('Please select a file');
+        return;
+      }
     }
 
     if (!endpointUrl) {
