@@ -35,6 +35,7 @@ export default function Home() {
   const [error, setError] = useState<string>('');
   const [storageUrl, setStorageUrl] = useState<string>('');
   const [manualUrl, setManualUrl] = useState<string>('');
+  const [businessId, setBusinessId] = useState<string>('');
   const [useProxy, setUseProxy] = useState<boolean>(true);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -206,15 +207,20 @@ export default function Home() {
         });
 
         headers['Content-Type'] = 'application/json';
-        requestBody = JSON.stringify({
-          document: base64,
-          document_type: 'passport'
-        });
+        const payload: Record<string, string> = {
+          document: base64
+        };
+        if (businessId) {
+          payload.businessId = businessId;
+        }
+        requestBody = JSON.stringify(payload);
       } else if (sendMethod === 'formdata') {
         // Send as multipart form data
         const formData = new FormData();
         formData.append('document', file);
-        formData.append('document_type', 'passport');
+        if (businessId) {
+          formData.append('businessId', businessId);
+        }
         requestBody = formData;
         // Don't set Content-Type for FormData - browser will set it with boundary
       } else {
@@ -224,20 +230,26 @@ export default function Home() {
 
         if (manualUrl) {
           // Use the manually entered URL
-          requestBody = JSON.stringify({
-            document_url: manualUrl,
-            document_type: 'passport'
-          });
+          const payload: Record<string, string> = {
+            document_url: manualUrl
+          };
+          if (businessId) {
+            payload.businessId = businessId;
+          }
+          requestBody = JSON.stringify(payload);
         } else {
           // Upload to storage and send URL
           try {
             const uploadedUrl = storageUrl || await uploadToStorage(file);
             setStorageUrl(uploadedUrl);
 
-            requestBody = JSON.stringify({
-              document_url: uploadedUrl,
-              document_type: 'passport'
-            });
+            const payload: Record<string, string> = {
+              document_url: uploadedUrl
+            };
+            if (businessId) {
+              payload.businessId = businessId;
+            }
+            requestBody = JSON.stringify(payload);
           } catch (uploadError) {
             setError(uploadError instanceof Error ? uploadError.message : 'Upload failed');
             setIsLoading(false);
@@ -415,6 +427,20 @@ export default function Home() {
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
                     placeholder="your-api-key"
                   />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Business ID (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={businessId}
+                    onChange={(e) => setBusinessId(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="customer-12345"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Optional identifier for your reference</p>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
