@@ -28,7 +28,7 @@ export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [sendMethod, setSendMethod] = useState<SendMethod>('base64');
   const [endpointUrl, setEndpointUrl] = useState<string>('https://document-parser.easyrecruit.ai/api/v2/passport');
-  const [apiKey, setApiKey] = useState<string>('');
+  const [apiKey, setApiKey] = useState<string>('dp_test_TrM7vCA3DUEwJJjlg2GF63yBSer1_ZySzK54NkUy4kIJgoKZi_CzMh6vCL51SAq7');
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<ResponseData | null>(null);
