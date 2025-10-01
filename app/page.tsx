@@ -34,6 +34,7 @@ export default function Home() {
   const [response, setResponse] = useState<ResponseData | null>(null);
   const [error, setError] = useState<string>('');
   const [storageUrl, setStorageUrl] = useState<string>('');
+  const [manualUrl, setManualUrl] = useState<string>('');
   const [useProxy, setUseProxy] = useState<boolean>(true);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -218,20 +219,30 @@ export default function Home() {
         // Don't set Content-Type for FormData - browser will set it with boundary
       } else {
         // sendMethod === 'url'
-        // Upload to storage and send URL
-        try {
-          const uploadedUrl = storageUrl || await uploadToStorage(file);
-          setStorageUrl(uploadedUrl);
+        // Use manual URL if provided, otherwise upload to storage
+        headers['Content-Type'] = 'application/json';
 
-          headers['Content-Type'] = 'application/json';
+        if (manualUrl) {
+          // Use the manually entered URL
           requestBody = JSON.stringify({
-            document_url: uploadedUrl,
+            document_url: manualUrl,
             document_type: 'passport'
           });
-        } catch (uploadError) {
-          setError(uploadError instanceof Error ? uploadError.message : 'Upload failed');
-          setIsLoading(false);
-          return;
+        } else {
+          // Upload to storage and send URL
+          try {
+            const uploadedUrl = storageUrl || await uploadToStorage(file);
+            setStorageUrl(uploadedUrl);
+
+            requestBody = JSON.stringify({
+              document_url: uploadedUrl,
+              document_type: 'passport'
+            });
+          } catch (uploadError) {
+            setError(uploadError instanceof Error ? uploadError.message : 'Upload failed');
+            setIsLoading(false);
+            return;
+          }
         }
       }
 
@@ -522,35 +533,49 @@ export default function Home() {
                   </div>
                 </label>
 
-                <label className={`flex items-center space-x-3 ${!file ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}>
+                <label className="flex items-center space-x-3 cursor-pointer">
                   <input
                     type="radio"
                     value="url"
                     checked={sendMethod === 'url'}
                     onChange={(e) => setSendMethod(e.target.value as SendMethod)}
                     className="w-4 h-4 text-blue-600 focus:ring-blue-500"
-                    disabled={!file}
                   />
                   <div>
-                    <span className="font-medium text-slate-900">Storage URL</span>
-                    <p className="text-sm text-slate-600">
-                      {!file ? 'Upload a file first to use this option' : 'Upload to storage and send URL'}
-                    </p>
+                    <span className="font-medium text-slate-900">Document URL</span>
+                    <p className="text-sm text-slate-600">Send a URL to an existing document</p>
                   </div>
                 </label>
 
-                {sendMethod === 'url' && storageUrl && (
-                  <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                    <p className="text-sm text-green-800">
-                      <strong>Uploaded URL:</strong> {storageUrl}
-                    </p>
+                {sendMethod === 'url' && (
+                  <div className="mt-3 space-y-3">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Document URL
+                      </label>
+                      <input
+                        type="text"
+                        value={manualUrl}
+                        onChange={(e) => setManualUrl(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://example.com/passport.jpg"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Enter the URL of the document you want to parse</p>
+                    </div>
+                    {storageUrl && (
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+                        <p className="text-sm text-green-800">
+                          <strong>Uploaded URL:</strong> {storageUrl}
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
 
               <button
                 onClick={sendRequest}
-                disabled={!file || !endpointUrl || isLoading}
+                disabled={(sendMethod !== 'url' && !file) || (sendMethod === 'url' && !manualUrl && !file) || !endpointUrl || isLoading}
                 className="w-full mt-6 px-4 py-3 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
               >
                 <div className="flex items-center justify-center gap-2">
