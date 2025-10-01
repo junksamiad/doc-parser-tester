@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
 
     // Parse the target URL from query params or use default
     const targetUrl = request.nextUrl.searchParams.get('url') ||
-      'https://document-parser.easyrecruit.ai/api/v1/passport';
+      'https://document-parser.easyrecruit.ai/api/v2/passport';
 
     // Get API key from headers
     const apiKey = request.headers.get('x-api-key');

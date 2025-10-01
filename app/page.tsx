@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock } from 'lucide-react';
+import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
 
@@ -16,10 +16,18 @@ interface ResponseData {
   };
 }
 
+interface WebhookPayload {
+  timestamp: string;
+  headers: Record<string, string>;
+  body: unknown;
+  method: string;
+  url: string;
+}
+
 export default function Home() {
   const [file, setFile] = useState<File | null>(null);
   const [sendMethod, setSendMethod] = useState<SendMethod>('base64');
-  const [endpointUrl, setEndpointUrl] = useState<string>('https://document-parser.easyrecruit.ai/api/v1/passport');
+  const [endpointUrl, setEndpointUrl] = useState<string>('https://document-parser.easyrecruit.ai/api/v2/passport');
   const [apiKey, setApiKey] = useState<string>('');
   const [isDragging, setIsDragging] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -30,6 +38,8 @@ export default function Home() {
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
+  const [webhookPayload, setWebhookPayload] = useState<WebhookPayload | null>(null);
+  const [isPolling, setIsPolling] = useState<boolean>(false);
 
   // Timer effect
   useEffect(() => {
@@ -51,6 +61,34 @@ export default function Home() {
       }
     };
   }, [isLoading]);
+
+  // Webhook polling effect
+  useEffect(() => {
+    let intervalId: NodeJS.Timeout | null = null;
+
+    const fetchWebhookPayload = async () => {
+      try {
+        const res = await fetch('/api/webhook');
+        const data = await res.json();
+        if (data.success && data.payload) {
+          setWebhookPayload(data.payload);
+        }
+      } catch (err) {
+        console.error('Failed to fetch webhook payload:', err);
+      }
+    };
+
+    if (isPolling) {
+      fetchWebhookPayload(); // Fetch immediately
+      intervalId = setInterval(fetchWebhookPayload, 2000); // Poll every 2 seconds
+    }
+
+    return () => {
+      if (intervalId) {
+        clearInterval(intervalId);
+      }
+    };
+  }, [isPolling]);
 
   const formatElapsedTime = (ms: number) => {
     const totalSeconds = Math.floor(ms / 1000);
@@ -241,6 +279,97 @@ export default function Home() {
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-slate-900 mb-2">Document Parser Tester</h1>
           <p className="text-slate-600">Test your passport parsing API with different upload methods</p>
+        </div>
+
+        {/* Webhook Listener Section */}
+        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <Webhook className="w-5 h-5 text-purple-600" />
+              <h2 className="text-lg font-semibold text-slate-900">Webhook Listener</h2>
+            </div>
+            <button
+              onClick={() => setIsPolling(!isPolling)}
+              className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                isPolling
+                  ? 'bg-red-600 text-white hover:bg-red-700'
+                  : 'bg-purple-600 text-white hover:bg-purple-700'
+              }`}
+            >
+              {isPolling ? 'Stop Listening' : 'Start Listening'}
+            </button>
+          </div>
+
+          <div className="bg-slate-50 rounded-lg p-4 mb-4">
+            <p className="text-sm font-medium text-slate-700 mb-1">Webhook URL:</p>
+            <code className="text-sm text-purple-600 bg-white px-3 py-2 rounded border border-slate-200 block">
+              {typeof window !== 'undefined' ? `${window.location.origin}/api/webhook` : '/api/webhook'}
+            </code>
+          </div>
+
+          {isPolling && (
+            <div className="flex items-center gap-2 text-sm text-green-600 mb-4">
+              <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
+              Listening for webhooks...
+            </div>
+          )}
+
+          {webhookPayload ? (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-green-600">
+                  <CheckCircle className="w-5 h-5" />
+                  <span className="font-medium">Webhook Received</span>
+                </div>
+                <span className="text-xs text-slate-500">
+                  {new Date(webhookPayload.timestamp).toLocaleString()}
+                </span>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2 text-sm">
+                <div className="bg-slate-50 rounded px-3 py-2">
+                  <span className="text-slate-600">Method:</span>
+                  <span className="ml-2 font-medium">{webhookPayload.method}</span>
+                </div>
+                <div className="bg-slate-50 rounded px-3 py-2">
+                  <span className="text-slate-600">Timestamp:</span>
+                  <span className="ml-2 font-mono text-xs">{new Date(webhookPayload.timestamp).toLocaleTimeString()}</span>
+                </div>
+              </div>
+
+              <div className="bg-slate-50 rounded-lg p-4 max-h-[300px] overflow-auto">
+                <p className="text-sm font-medium text-slate-700 mb-2">Payload:</p>
+                <pre className="text-xs text-slate-800 whitespace-pre-wrap break-words">
+                  {JSON.stringify(webhookPayload.body, null, 2)}
+                </pre>
+              </div>
+
+              <details className="text-sm">
+                <summary className="cursor-pointer text-slate-600 hover:text-slate-900 font-medium">
+                  View Headers
+                </summary>
+                <div className="mt-2 bg-slate-50 rounded-lg p-3 max-h-[200px] overflow-auto">
+                  <pre className="text-xs text-slate-800 whitespace-pre-wrap break-words">
+                    {JSON.stringify(webhookPayload.headers, null, 2)}
+                  </pre>
+                </div>
+              </details>
+
+              <button
+                onClick={() => setWebhookPayload(null)}
+                className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+              >
+                <X className="w-4 h-4" />
+                Clear webhook data
+              </button>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-slate-500">
+              <Webhook className="w-12 h-12 mx-auto mb-3 text-slate-300" />
+              <p>No webhook received yet</p>
+              <p className="text-sm mt-1">Send a POST request to the webhook URL above</p>
+            </div>
+          )}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
