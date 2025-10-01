@@ -76,6 +76,11 @@ export async function PATCH(request: NextRequest) {
   return POST(request);
 }
 
-export async function DELETE(request: NextRequest) {
-  return POST(request);
+export async function DELETE() {
+  // Clear the stored webhook payload
+  latestPayload = null;
+  return NextResponse.json({
+    success: true,
+    message: 'Webhook data cleared',
+  });
 }

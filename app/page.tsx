@@ -402,7 +402,15 @@ export default function Home() {
               </details>
 
               <button
-                onClick={() => setWebhookPayload(null)}
+                onClick={async () => {
+                  setWebhookPayload(null);
+                  // Clear on server side too
+                  try {
+                    await fetch('/api/webhook', { method: 'DELETE' });
+                  } catch (err) {
+                    console.error('Failed to clear webhook data on server:', err);
+                  }
+                }}
                 className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
               >
                 <X className="w-4 h-4" />
