@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook } from 'lucide-react';
+import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
 
@@ -322,9 +322,18 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold text-slate-900 mb-2">Document Parser Tester</h1>
-          <p className="text-slate-600">Test your passport parsing API with different upload methods</p>
+        <div className="mb-8 flex items-center justify-between">
+          <div>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">Document Parser Tester</h1>
+            <p className="text-slate-600">Test your passport parsing API with different upload methods</p>
+          </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-slate-600 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2"
+          >
+            <RefreshCw className="w-5 h-5" />
+            Refresh Page
+          </button>
         </div>
 
         {/* Webhook Listener Section */}
