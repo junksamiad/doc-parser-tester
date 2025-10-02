@@ -78,18 +78,7 @@ export default function Home() {
           setWebhookPayload(data.payload);
           setIsWaitingForWebhook(false);
 
-          // Extract document URL from webhook payload if it exists
-          if (data.payload.body && typeof data.payload.body === 'object') {
-            const body = data.payload.body as Record<string, unknown>;
-            if (body.document_url && typeof body.document_url === 'string') {
-              setProcessedDocumentUrl(body.document_url);
-            } else if (body.data && typeof body.data === 'object') {
-              const dataObj = body.data as Record<string, unknown>;
-              if (dataObj.document_url && typeof dataObj.document_url === 'string') {
-                setProcessedDocumentUrl(dataObj.document_url);
-              }
-            }
-          }
+          // Document URL is already set when request is sent, nothing to do here
         }
       } catch (err) {
         console.error('Failed to fetch webhook payload:', err);
@@ -209,6 +198,7 @@ export default function Home() {
     setError('');
     setResponse(null);
     setElapsedTime(0);
+    setProcessedDocumentUrl(''); // Clear previous document URL
 
     try {
       let requestBody: FormData | string;
@@ -264,6 +254,7 @@ export default function Home() {
 
         if (manualUrl) {
           // Use the manually entered URL
+          setProcessedDocumentUrl(manualUrl); // Store the URL we're processing
           const payload: Record<string, string> = {
             document_url: manualUrl
           };
@@ -281,6 +272,7 @@ export default function Home() {
           try {
             const uploadedUrl = storageUrl || await uploadToStorage(file);
             setStorageUrl(uploadedUrl);
+            setProcessedDocumentUrl(uploadedUrl); // Store the URL we're processing
 
             const payload: Record<string, string> = {
               document_url: uploadedUrl
@@ -362,18 +354,18 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+            <h1 className="text-4xl font-bold text-slate-900 mb-2">
               Document Parser Tester
-              <button
-                onClick={() => window.location.reload()}
-                className="p-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
-                title="Refresh page"
-              >
-                <RefreshCw className="w-5 h-5" />
-              </button>
             </h1>
             <p className="text-slate-600">Test your passport parsing API with different upload methods</p>
           </div>
+          <button
+            onClick={() => window.location.reload()}
+            className="p-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+            title="Refresh page"
+          >
+            <RefreshCw className="w-5 h-5" />
+          </button>
         </div>
 
         {/* Webhook Listener Section */}
