@@ -9,13 +9,17 @@ export async function POST(request: NextRequest) {
     const targetUrl = request.nextUrl.searchParams.get('url') ||
       'https://document-parser.easyrecruit.ai/api/v2/passport';
 
-    // Get API key from headers
+    // Get API key and request ID from headers
     const apiKey = request.headers.get('x-api-key');
+    const requestId = request.headers.get('x-request-id');
 
     // Prepare headers for the target API
     const headers: HeadersInit = {};
     if (apiKey) {
       headers['x-api-key'] = apiKey;
+    }
+    if (requestId) {
+      headers['x-request-id'] = requestId;
     }
 
     let body: FormData | string;
@@ -50,7 +54,7 @@ export async function POST(request: NextRequest) {
       headers: {
         'Access-Control-Allow-Origin': '*',
         'Access-Control-Allow-Methods': 'POST, OPTIONS',
-        'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+        'Access-Control-Allow-Headers': 'Content-Type, x-api-key, x-request-id',
       }
     });
   } catch (error) {
@@ -68,7 +72,7 @@ export async function POST(request: NextRequest) {
         headers: {
           'Access-Control-Allow-Origin': '*',
           'Access-Control-Allow-Methods': 'POST, OPTIONS',
-          'Access-Control-Allow-Headers': 'Content-Type, x-api-key',
+          'Access-Control-Allow-Headers': 'Content-Type, x-api-key, x-request-id',
         }
       }
     );

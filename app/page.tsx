@@ -36,6 +36,7 @@ export default function Home() {
   const [storageUrl, setStorageUrl] = useState<string>('');
   const [manualUrl, setManualUrl] = useState<string>('');
   const [businessId, setBusinessId] = useState<string>('');
+  const [requestId, setRequestId] = useState<string>('');
   const [useProxy, setUseProxy] = useState<boolean>(true);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -206,6 +207,10 @@ export default function Home() {
 
       if (apiKey) {
         headers['x-api-key'] = apiKey;
+      }
+
+      if (requestId) {
+        headers['x-request-id'] = requestId;
       }
 
       if (sendMethod === 'base64') {
@@ -541,6 +546,20 @@ export default function Home() {
                     placeholder="customer-12345"
                   />
                   <p className="text-xs text-slate-500 mt-1">Optional identifier for your reference</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Request ID (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={requestId}
+                    onChange={(e) => setRequestId(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="req-abc-123"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Sent as x-request-id header for request tracking</p>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
