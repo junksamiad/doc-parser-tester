@@ -42,6 +42,8 @@ export default function Home() {
   const startTimeRef = useRef<number>(0);
   const [webhookPayload, setWebhookPayload] = useState<WebhookPayload | null>(null);
   const [isPolling, setIsPolling] = useState<boolean>(true);
+  const [isWaitingForWebhook, setIsWaitingForWebhook] = useState<boolean>(false);
+  const [processedDocumentUrl, setProcessedDocumentUrl] = useState<string>('');
 
   // Timer effect
   useEffect(() => {
@@ -74,6 +76,20 @@ export default function Home() {
         const data = await res.json();
         if (data.success && data.payload) {
           setWebhookPayload(data.payload);
+          setIsWaitingForWebhook(false);
+
+          // Extract document URL from webhook payload if it exists
+          if (data.payload.body && typeof data.payload.body === 'object') {
+            const body = data.payload.body as Record<string, unknown>;
+            if (body.document_url && typeof body.document_url === 'string') {
+              setProcessedDocumentUrl(body.document_url);
+            } else if (body.data && typeof body.data === 'object') {
+              const dataObj = body.data as Record<string, unknown>;
+              if (dataObj.document_url && typeof dataObj.document_url === 'string') {
+                setProcessedDocumentUrl(dataObj.document_url);
+              }
+            }
+          }
         }
       } catch (err) {
         console.error('Failed to fetch webhook payload:', err);
@@ -297,6 +313,9 @@ export default function Home() {
 
       if (!response.ok) {
         setError(`HTTP ${response.status}: ${data.error?.message || 'Request failed'}`);
+      } else {
+        // Start waiting for webhook after successful response
+        setIsWaitingForWebhook(true);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'An error occurred');
@@ -343,16 +362,18 @@ export default function Home() {
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8 flex items-center justify-between">
           <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Document Parser Tester</h1>
+            <h1 className="text-4xl font-bold text-slate-900 mb-2 flex items-center gap-3">
+              Document Parser Tester
+              <button
+                onClick={() => window.location.reload()}
+                className="p-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
+                title="Refresh page"
+              >
+                <RefreshCw className="w-5 h-5" />
+              </button>
+            </h1>
             <p className="text-slate-600">Test your passport parsing API with different upload methods</p>
           </div>
-          <button
-            onClick={() => window.location.reload()}
-            className="px-4 py-2 bg-slate-600 text-white rounded-lg font-medium hover:bg-slate-700 transition-colors flex items-center gap-2"
-          >
-            <RefreshCw className="w-5 h-5" />
-            Refresh Page
-          </button>
         </div>
 
         {/* Webhook Listener Section */}
@@ -385,6 +406,32 @@ export default function Home() {
             <div className="flex items-center gap-2 text-sm text-green-600 mb-4">
               <div className="w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
               Listening for webhooks...
+            </div>
+          )}
+
+          {/* Show processed document URL if available */}
+          {processedDocumentUrl && (
+            <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center gap-2 mb-2">
+                <FileImage className="w-5 h-5 text-blue-600" />
+                <p className="text-sm font-medium text-slate-900">Processed Document:</p>
+              </div>
+              <a
+                href={processedDocumentUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-blue-600 hover:text-blue-700 underline break-all"
+              >
+                {processedDocumentUrl}
+              </a>
+            </div>
+          )}
+
+          {/* Show waiting spinner */}
+          {isWaitingForWebhook && !webhookPayload && (
+            <div className="flex items-center justify-center gap-3 py-8 text-purple-600">
+              <Loader2 className="w-6 h-6 animate-spin" />
+              <span className="font-medium">Waiting for webhook response...</span>
             </div>
           )}
 
@@ -432,6 +479,8 @@ export default function Home() {
               <button
                 onClick={async () => {
                   setWebhookPayload(null);
+                  setProcessedDocumentUrl('');
+                  setIsWaitingForWebhook(false);
                   // Clear on server side too
                   try {
                     await fetch('/api/webhook', { method: 'DELETE' });
@@ -445,13 +494,13 @@ export default function Home() {
                 Clear webhook data
               </button>
             </div>
-          ) : (
+          ) : !isWaitingForWebhook ? (
             <div className="text-center py-8 text-slate-500">
               <Webhook className="w-12 h-12 mx-auto mb-3 text-slate-300" />
               <p>No webhook received yet</p>
               <p className="text-sm mt-1">Send a POST request to the webhook URL above</p>
             </div>
-          )}
+          ) : null}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
