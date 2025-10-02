@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useCallback, useEffect, useRef } from 'react';
-import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw } from 'lucide-react';
+import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
 
@@ -303,6 +303,25 @@ export default function Home() {
       setResponse(null);
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadRandomUrl = async () => {
+    try {
+      const response = await fetch('/test-urls.txt');
+      const text = await response.text();
+      const urls = text.split('\n').filter(url => url.trim() !== '');
+
+      if (urls.length > 0) {
+        const randomUrl = urls[Math.floor(Math.random() * urls.length)];
+        setManualUrl(randomUrl.trim());
+        setError('');
+      } else {
+        setError('No URLs found in test file');
+      }
+    } catch (err) {
+      setError('Failed to load test URLs');
+      console.error('Error loading random URL:', err);
     }
   };
 
@@ -619,14 +638,23 @@ export default function Home() {
                       <label className="block text-sm font-medium text-slate-700 mb-2">
                         Document URL
                       </label>
-                      <input
-                        type="text"
-                        value={manualUrl}
-                        onChange={(e) => setManualUrl(e.target.value)}
-                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                        placeholder="https://example.com/passport.jpg"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">Enter the URL of the document you want to parse</p>
+                      <div className="flex gap-2">
+                        <input
+                          type="text"
+                          value={manualUrl}
+                          onChange={(e) => setManualUrl(e.target.value)}
+                          className="flex-1 px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          placeholder="https://example.com/passport.jpg"
+                        />
+                        <button
+                          onClick={loadRandomUrl}
+                          className="px-3 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors flex items-center gap-2"
+                          title="Load random test URL"
+                        >
+                          <Shuffle className="w-5 h-5" />
+                        </button>
+                      </div>
+                      <p className="text-xs text-slate-500 mt-1">Enter the URL of the document you want to parse or click the shuffle icon for a random test URL</p>
                     </div>
                     {storageUrl && (
                       <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
