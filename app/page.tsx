@@ -358,11 +358,18 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
       <div className="container mx-auto px-4 py-8 max-w-6xl">
         <div className="mb-8 flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">
-              Document Parser Tester
-            </h1>
-            <p className="text-slate-600">Test your passport parsing API with different upload methods</p>
+          <div className="flex items-center gap-4">
+            <img
+              src="/doc-parser-icon.ico"
+              alt="Document Parser Icon"
+              className="w-12 h-12"
+            />
+            <div>
+              <h1 className="text-4xl font-bold text-slate-900 mb-2">
+                Document Parser Tester
+              </h1>
+              <p className="text-slate-600">Test your passport parsing API with different upload methods</p>
+            </div>
           </div>
           <button
             onClick={() => window.location.reload()}
