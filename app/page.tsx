@@ -33,7 +33,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [response, setResponse] = useState<ResponseData | null>(null);
   const [error, setError] = useState<string>('');
-  const [storageUrl, setStorageUrl] = useState<string>('');
   const [manualUrl, setManualUrl] = useState<string>('');
   const [businessId, setBusinessId] = useState<string>('');
   const [requestId, setRequestId] = useState<string>('');
@@ -131,7 +130,6 @@ export default function Home() {
       if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
         setFile(file);
         setError('');
-        setStorageUrl(''); // Clear storage URL when new file is selected
       } else {
         setError('Please upload a PDF or image file (JPG, PNG)');
       }
@@ -145,36 +143,11 @@ export default function Home() {
       if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
         setFile(file);
         setError('');
-        setStorageUrl(''); // Clear storage URL when new file is selected
       } else {
         setError('Please upload a PDF or image file (JPG, PNG)');
       }
     }
   }, []);
-
-  const uploadToStorage = async (file: File): Promise<string> => {
-    // For now, we'll use Vercel Blob storage
-    // This would be replaced with actual storage upload logic
-    try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to upload file to storage');
-      }
-
-      const data = await response.json();
-      return data.url;
-    } catch (error) {
-      console.error('Storage upload error:', error);
-      throw new Error('Storage upload is not configured. Please use base64 or formdata method.');
-    }
-  };
 
   const sendRequest = async () => {
     // Validate based on send method
@@ -254,44 +227,16 @@ export default function Home() {
         // Don't set Content-Type for FormData - browser will set it with boundary
       } else {
         // sendMethod === 'url'
-        // Use manual URL if provided, otherwise upload to storage
+        // Use the manually entered URL
         headers['Content-Type'] = 'application/json';
-
-        if (manualUrl) {
-          // Use the manually entered URL
-          setProcessedDocumentUrl(manualUrl); // Store the URL we're processing
-          const payload: Record<string, string> = {
-            document_url: manualUrl
-          };
-          if (businessId) {
-            payload.businessId = businessId;
-          }
-          requestBody = JSON.stringify(payload);
-        } else {
-          // Upload to storage and send URL
-          if (!file) {
-            setError('File is required for storage upload');
-            setIsLoading(false);
-            return;
-          }
-          try {
-            const uploadedUrl = storageUrl || await uploadToStorage(file);
-            setStorageUrl(uploadedUrl);
-            setProcessedDocumentUrl(uploadedUrl); // Store the URL we're processing
-
-            const payload: Record<string, string> = {
-              document_url: uploadedUrl
-            };
-            if (businessId) {
-              payload.businessId = businessId;
-            }
-            requestBody = JSON.stringify(payload);
-          } catch (uploadError) {
-            setError(uploadError instanceof Error ? uploadError.message : 'Upload failed');
-            setIsLoading(false);
-            return;
-          }
+        setProcessedDocumentUrl(manualUrl); // Store the URL we're processing
+        const payload: Record<string, string> = {
+          document_url: manualUrl
+        };
+        if (businessId) {
+          payload.businessId = businessId;
         }
+        requestBody = JSON.stringify(payload);
       }
 
       // Use proxy if enabled to avoid CORS issues
@@ -619,7 +564,6 @@ export default function Home() {
                     <button
                       onClick={() => {
                         setFile(null);
-                        setStorageUrl('');
                       }}
                       className="text-sm text-red-600 hover:text-red-700 flex items-center mx-auto gap-1"
                     >
@@ -723,13 +667,6 @@ export default function Home() {
                       </div>
                       <p className="text-xs text-slate-500 mt-1">Enter the URL of the document you want to parse or click the shuffle icon for a random test URL</p>
                     </div>
-                    {storageUrl && (
-                      <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                        <p className="text-sm text-green-800">
-                          <strong>Uploaded URL:</strong> {storageUrl}
-                        </p>
-                      </div>
-                    )}
                   </div>
                 )}
               </div>
