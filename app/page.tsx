@@ -36,6 +36,7 @@ export default function Home() {
   const [manualUrl, setManualUrl] = useState<string>('');
   const [businessId, setBusinessId] = useState<string>('');
   const [requestId, setRequestId] = useState<string>('');
+  const [webhookUrl, setWebhookUrl] = useState<string>('');
   const [useProxy, setUseProxy] = useState<boolean>(true);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
@@ -210,6 +211,9 @@ export default function Home() {
         if (businessId) {
           payload.businessId = businessId;
         }
+        if (webhookUrl) {
+          payload.webhookUrl = webhookUrl;
+        }
         requestBody = JSON.stringify(payload);
       } else if (sendMethod === 'formdata') {
         // Send as multipart form data
@@ -223,6 +227,9 @@ export default function Home() {
         if (businessId) {
           formData.append('businessId', businessId);
         }
+        if (webhookUrl) {
+          formData.append('webhookUrl', webhookUrl);
+        }
         requestBody = formData;
         // Don't set Content-Type for FormData - browser will set it with boundary
       } else {
@@ -231,10 +238,13 @@ export default function Home() {
         headers['Content-Type'] = 'application/json';
         setProcessedDocumentUrl(manualUrl); // Store the URL we're processing
         const payload: Record<string, string> = {
-          document_url: manualUrl
+          documentUrl: manualUrl
         };
         if (businessId) {
           payload.businessId = businessId;
+        }
+        if (webhookUrl) {
+          payload.webhookUrl = webhookUrl;
         }
         requestBody = JSON.stringify(payload);
       }
@@ -512,6 +522,20 @@ export default function Home() {
                     placeholder="req-abc-123"
                   />
                   <p className="text-xs text-slate-500 mt-1">Sent as x-request-id header for request tracking</p>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Webhook URL (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={webhookUrl}
+                    onChange={(e) => setWebhookUrl(e.target.value)}
+                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="https://your-server.com/webhook"
+                  />
+                  <p className="text-xs text-slate-500 mt-1">Webhook URL for async processing callbacks</p>
                 </div>
 
                 <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
