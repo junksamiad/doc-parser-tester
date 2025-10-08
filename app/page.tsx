@@ -397,7 +397,7 @@ export default function Home() {
           <div className="bg-slate-50 rounded-lg p-4 mb-4">
             <p className="text-sm font-medium text-slate-700 mb-1">Webhook URL:</p>
             <code className="text-sm text-purple-600 bg-white px-3 py-2 rounded border border-slate-200 block">
-              {typeof window !== 'undefined' ? `${window.location.origin}/api/webhook` : '/api/webhook'}
+              {webhookUrl || '/api/webhook'}
             </code>
           </div>
 
