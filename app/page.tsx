@@ -513,7 +513,7 @@ export default function Home() {
                     <option value="https://document-parser.easyrecruit.ai/api/v2/passport">
                       Passport
                     </option>
-                    <option value="https://document-parser.easyrecruit.ai/api/v2/driving_licence">
+                    <option value="https://document-parser.easyrecruit.ai/api/v2/driving-licence">
                       Driving Licence
                     </option>
                   </select>
