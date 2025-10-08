@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { upload } from '@vercel/blob/client';
 import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle, Eye, User, MapPin, Shield } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
@@ -162,23 +163,14 @@ export default function Home() {
     setError('');
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      const response = await fetch('/api/upload', {
-        method: 'POST',
-        body: formData,
+      // Client-side upload directly to Vercel Blob (bypasses 4.5MB serverless limit)
+      const blob = await upload(file.name, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
       });
 
-      const data = await response.json();
-
-      if (!response.ok || !data.success) {
-        setError(data.error || 'Failed to upload file to storage');
-        return;
-      }
-
       // Set the blob URL in the manual URL field and switch to URL mode
-      setManualUrl(data.url);
+      setManualUrl(blob.url);
       setSendMethod('url');
       setError('');
     } catch (err) {
