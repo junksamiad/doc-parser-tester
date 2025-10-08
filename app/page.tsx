@@ -152,6 +152,42 @@ export default function Home() {
     }
   }, []);
 
+  const uploadToBlob = async () => {
+    if (!file) {
+      setError('Please select a file first');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      const response = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.success) {
+        setError(data.error || 'Failed to upload file to storage');
+        return;
+      }
+
+      // Set the blob URL in the manual URL field and switch to URL mode
+      setManualUrl(data.url);
+      setSendMethod('url');
+      setError('');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to upload file');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const sendRequest = async () => {
     // Validate based on send method
     if (sendMethod === 'url') {
@@ -604,15 +640,25 @@ export default function Home() {
                       <p className="font-medium text-slate-900">{file.name}</p>
                       <p className="text-sm text-slate-600">{formatFileSize(file.size)}</p>
                     </div>
-                    <button
-                      onClick={() => {
-                        setFile(null);
-                      }}
-                      className="text-sm text-red-600 hover:text-red-700 flex items-center mx-auto gap-1"
-                    >
-                      <X className="w-4 h-4" />
-                      Remove file
-                    </button>
+                    <div className="flex items-center justify-center gap-3">
+                      <button
+                        onClick={uploadToBlob}
+                        disabled={isLoading}
+                        className="text-sm bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:bg-slate-300 disabled:cursor-not-allowed flex items-center gap-2"
+                      >
+                        <Upload className="w-4 h-4" />
+                        Upload to Storage
+                      </button>
+                      <button
+                        onClick={() => {
+                          setFile(null);
+                        }}
+                        className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                      >
+                        <X className="w-4 h-4" />
+                        Remove file
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <>
