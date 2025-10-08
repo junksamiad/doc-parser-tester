@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { upload } from '@vercel/blob/client';
-import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle, Eye, User, MapPin, Shield } from 'lucide-react';
+import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
 
@@ -47,7 +47,6 @@ export default function Home() {
   const [isPolling, setIsPolling] = useState<boolean>(true);
   const [isWaitingForWebhook, setIsWaitingForWebhook] = useState<boolean>(false);
   const [processedDocumentUrl, setProcessedDocumentUrl] = useState<string>('');
-  const [showFormattedView, setShowFormattedView] = useState<boolean>(false);
 
   // Timer effect
   useEffect(() => {
@@ -433,19 +432,9 @@ export default function Home() {
                   <CheckCircle className="w-5 h-5" />
                   <span className="font-medium">Webhook Received</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    onClick={() => setShowFormattedView(true)}
-                    className="p-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
-                    title="View formatted response"
-                  >
-                    <Eye className="w-4 h-4" />
-                    <span className="text-sm font-medium">View Details</span>
-                  </button>
-                  <span className="text-xs text-slate-500">
-                    {new Date(webhookPayload.timestamp).toLocaleString()}
-                  </span>
-                </div>
+                <span className="text-xs text-slate-500">
+                  {new Date(webhookPayload.timestamp).toLocaleString()}
+                </span>
               </div>
 
               <div className="grid grid-cols-2 gap-2 text-sm">
@@ -838,226 +827,6 @@ export default function Home() {
             )}
           </div>
         </div>
-
-        {/* Formatted View Modal */}
-        {showFormattedView && webhookPayload && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4" onClick={() => setShowFormattedView(false)}>
-            <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-auto" onClick={(e) => e.stopPropagation()}>
-              {/* Header */}
-              <div className="sticky top-0 bg-white border-b border-slate-200 p-6 flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Document Parsing Results</h2>
-                  <p className="text-sm text-slate-600 mt-1">
-                    Received at {new Date(webhookPayload.timestamp).toLocaleString()}
-                  </p>
-                </div>
-                <button
-                  onClick={() => setShowFormattedView(false)}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
-                  title="Close"
-                >
-                  <X className="w-6 h-6 text-slate-600" />
-                </button>
-              </div>
-
-              {/* Content */}
-              <div className="p-6 space-y-6">
-                {(() => {
-                  const body = webhookPayload.body as ResponseData;
-                  const passportData = body.data as Record<string, unknown> | undefined;
-                  const passportAttributes = passportData?.passportAttributes as Record<string, unknown> | undefined;
-                  const attributeTypes = passportAttributes?.attribute_types as Record<string, unknown> | undefined;
-
-                  return (
-                    <>
-                      {/* Status Banner */}
-                      {body.success ? (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-center gap-3">
-                          <CheckCircle className="w-6 h-6 text-green-600" />
-                          <div>
-                            <p className="font-semibold text-green-900">Parsing Successful</p>
-                            <p className="text-sm text-green-700">Document has been processed successfully</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
-                          <AlertCircle className="w-6 h-6 text-red-600" />
-                          <div>
-                            <p className="font-semibold text-red-900">Parsing Failed</p>
-                            <p className="text-sm text-red-700">{body.error?.message || 'Unknown error'}</p>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Metadata */}
-                      {body.metadata && (
-                        <div className="bg-slate-50 rounded-lg p-4">
-                          <h3 className="text-lg font-semibold text-slate-900 mb-3 flex items-center gap-2">
-                            <Clock className="w-5 h-5" />
-                            Processing Information
-                          </h3>
-                          <div className="grid grid-cols-3 gap-4">
-                            {body.metadata.processingTime && (
-                              <div>
-                                <p className="text-xs text-slate-600 mb-1">Processing Time</p>
-                                <p className="text-lg font-semibold text-slate-900">{body.metadata.processingTime}</p>
-                              </div>
-                            )}
-                            {body.metadata.cost?.formattedCost && (
-                              <div>
-                                <p className="text-xs text-slate-600 mb-1">Cost</p>
-                                <p className="text-lg font-semibold text-slate-900">{body.metadata.cost.formattedCost}</p>
-                              </div>
-                            )}
-                            {body.metadata.requestId && (
-                              <div className="col-span-3 md:col-span-1">
-                                <p className="text-xs text-slate-600 mb-1">Request ID</p>
-                                <p className="text-sm font-mono text-slate-900 truncate" title={body.metadata.requestId}>
-                                  {body.metadata.requestId}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Personal Information */}
-                      {attributeTypes?.personal_information && (
-                        <div className="bg-white border border-slate-200 rounded-lg p-5">
-                          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                            <User className="w-5 h-5 text-blue-600" />
-                            Personal Information
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {Object.entries(attributeTypes.personal_information as Record<string, unknown>).map(([key, value]) => {
-                              const item = value as { value?: string; confidence?: number };
-                              return (
-                                <div key={key} className="bg-slate-50 rounded-lg p-3">
-                                  <p className="text-xs text-slate-600 mb-1 capitalize">
-                                    {key.replace(/_/g, ' ')}
-                                  </p>
-                                  <p className="font-medium text-slate-900">{item.value || 'N/A'}</p>
-                                  {item.confidence !== undefined && (
-                                    <p className="text-xs text-slate-500 mt-1">
-                                      Confidence: {(item.confidence * 100).toFixed(1)}%
-                                    </p>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Document Details */}
-                      {attributeTypes?.document_details && (
-                        <div className="bg-white border border-slate-200 rounded-lg p-5">
-                          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                            <FileText className="w-5 h-5 text-purple-600" />
-                            Document Details
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {Object.entries(attributeTypes.document_details as Record<string, unknown>).map(([key, value]) => {
-                              const item = value as { value?: string; confidence?: number };
-                              return (
-                                <div key={key} className="bg-slate-50 rounded-lg p-3">
-                                  <p className="text-xs text-slate-600 mb-1 capitalize">
-                                    {key.replace(/_/g, ' ')}
-                                  </p>
-                                  <p className="font-medium text-slate-900">{item.value || 'N/A'}</p>
-                                  {item.confidence !== undefined && (
-                                    <p className="text-xs text-slate-500 mt-1">
-                                      Confidence: {(item.confidence * 100).toFixed(1)}%
-                                    </p>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Validity Status */}
-                      {attributeTypes?.validity_status && (
-                        <div className="bg-white border border-slate-200 rounded-lg p-5">
-                          <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                            <Shield className="w-5 h-5 text-green-600" />
-                            Validity Status
-                          </h3>
-                          <div className="grid grid-cols-2 gap-4">
-                            {Object.entries(attributeTypes.validity_status as Record<string, unknown>).map(([key, value]) => {
-                              const item = value as { value?: string | boolean; confidence?: number };
-                              return (
-                                <div key={key} className="bg-slate-50 rounded-lg p-3">
-                                  <p className="text-xs text-slate-600 mb-1 capitalize">
-                                    {key.replace(/_/g, ' ')}
-                                  </p>
-                                  <p className="font-medium text-slate-900">
-                                    {typeof item.value === 'boolean' ? (item.value ? 'Yes' : 'No') : (item.value || 'N/A')}
-                                  </p>
-                                  {item.confidence !== undefined && (
-                                    <p className="text-xs text-slate-500 mt-1">
-                                      Confidence: {(item.confidence * 100).toFixed(1)}%
-                                    </p>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Other Sections - if any other attribute types exist */}
-                      {attributeTypes && Object.keys(attributeTypes).filter(
-                        key => !['personal_information', 'document_details', 'validity_status'].includes(key)
-                      ).map(sectionKey => {
-                        const section = attributeTypes[sectionKey] as Record<string, unknown>;
-                        return (
-                          <div key={sectionKey} className="bg-white border border-slate-200 rounded-lg p-5">
-                            <h3 className="text-lg font-semibold text-slate-900 mb-4 flex items-center gap-2">
-                              <MapPin className="w-5 h-5 text-orange-600" />
-                              {sectionKey.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-                            </h3>
-                            <div className="grid grid-cols-2 gap-4">
-                              {Object.entries(section).map(([key, value]) => {
-                                const item = value as { value?: string | boolean; confidence?: number };
-                                return (
-                                  <div key={key} className="bg-slate-50 rounded-lg p-3">
-                                    <p className="text-xs text-slate-600 mb-1 capitalize">
-                                      {key.replace(/_/g, ' ')}
-                                    </p>
-                                    <p className="font-medium text-slate-900">
-                                      {typeof item.value === 'boolean' ? (item.value ? 'Yes' : 'No') : (item.value || 'N/A')}
-                                    </p>
-                                    {item.confidence !== undefined && (
-                                      <p className="text-xs text-slate-500 mt-1">
-                                        Confidence: {(item.confidence * 100).toFixed(1)}%
-                                      </p>
-                                    )}
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          </div>
-                        );
-                      })}
-
-                      {/* Raw JSON Toggle */}
-                      <details className="bg-slate-50 rounded-lg p-4">
-                        <summary className="cursor-pointer text-slate-900 font-medium hover:text-slate-700">
-                          View Raw JSON Response
-                        </summary>
-                        <pre className="mt-3 text-xs text-slate-800 whitespace-pre-wrap break-words bg-white rounded border border-slate-200 p-3 max-h-96 overflow-auto">
-                          {JSON.stringify(webhookPayload.body, null, 2)}
-                        </pre>
-                      </details>
-                    </>
-                  );
-                })()}
-              </div>
-            </div>
-          </div>
-        )}
       </div>
     </div>
   );
