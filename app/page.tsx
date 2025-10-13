@@ -40,7 +40,6 @@ export default function Home() {
   const [requestId, setRequestId] = useState<string>('');
   const [webhookUrl, setWebhookUrl] = useState<string>('https://doc-parser-tester.vercel.app/api/webhook');
   const [useProxy, setUseProxy] = useState<boolean>(true);
-  const [useAWS, setUseAWS] = useState<boolean>(false);
   const [documentPart, setDocumentPart] = useState<string>('');
   const [showSettings, setShowSettings] = useState<boolean>(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
@@ -249,9 +248,6 @@ export default function Home() {
         if (documentPart) {
           payload.documentPart = documentPart;
         }
-        if (useAWS) {
-          payload.useAWS = useAWS;
-        }
         requestBody = JSON.stringify(payload);
       } else if (sendMethod === 'formdata') {
         // Send as multipart form data
@@ -271,9 +267,6 @@ export default function Home() {
         if (documentPart) {
           formData.append('documentPart', documentPart);
         }
-        if (useAWS) {
-          formData.append('useAWS', 'true');
-        }
         requestBody = formData;
         // Don't set Content-Type for FormData - browser will set it with boundary
       } else {
@@ -292,9 +285,6 @@ export default function Home() {
         }
         if (documentPart) {
           payload.documentPart = documentPart;
-        }
-        if (useAWS) {
-          payload.useAWS = useAWS;
         }
         requestBody = JSON.stringify(payload);
       }
@@ -379,7 +369,15 @@ export default function Home() {
             </div>
           </div>
           <button
-            onClick={() => window.location.reload()}
+            onClick={async () => {
+              // Clear webhook data on server side before refreshing
+              try {
+                await fetch('/api/webhook', { method: 'DELETE' });
+              } catch (err) {
+                console.error('Failed to clear webhook data:', err);
+              }
+              window.location.reload();
+            }}
             className="p-2 bg-slate-200 text-slate-700 rounded-lg hover:bg-slate-300 transition-colors"
             title="Refresh page"
           >
@@ -661,22 +659,6 @@ export default function Home() {
                           className="sr-only peer"
                         />
                         <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                      </label>
-                    </div>
-
-                    <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                      <div className="flex-1">
-                        <p className="text-sm font-medium text-slate-900">Use AWS Processing</p>
-                        <p className="text-xs text-slate-600 mt-0.5">Enable AWS-based document processing instead of default service</p>
-                      </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={useAWS}
-                          onChange={(e) => setUseAWS(e.target.checked)}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
                       </label>
                     </div>
                   </div>
