@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { upload } from '@vercel/blob/client';
-import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle } from 'lucide-react';
+import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle, Eye } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
 
@@ -457,6 +457,18 @@ export default function Home() {
                   <span className="ml-2 font-mono text-xs">{new Date(webhookPayload.timestamp).toLocaleTimeString()}</span>
                 </div>
               </div>
+
+              {/* View Details Button */}
+              <button
+                onClick={() => {
+                  // TODO: Navigate to detail view page
+                  console.log('View details clicked', webhookPayload);
+                }}
+                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg"
+              >
+                <Eye className="w-5 h-5 animate-pulse" />
+                <span>View Parsed Details</span>
+              </button>
 
               <div className="bg-slate-50 rounded-lg p-4 max-h-[300px] overflow-auto">
                 <p className="text-sm font-medium text-slate-700 mb-2">Payload:</p>
