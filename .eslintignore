@@ -1,0 +1,9 @@
+.next/
+node_modules/
+out/
+build/
+dist/
+doc-parser-tester/
+*.config.js
+*.config.ts
+next-env.d.ts

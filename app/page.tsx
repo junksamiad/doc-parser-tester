@@ -469,17 +469,28 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* View Details Button */}
-              <button
-                onClick={() => {
-                  // TODO: Navigate to detail view page
-                  console.log('View details clicked', webhookPayload);
-                }}
-                className="w-full px-4 py-3 bg-gradient-to-r from-purple-600 to-blue-600 text-white rounded-lg font-medium hover:from-purple-700 hover:to-blue-700 transition-all flex items-center justify-center gap-2 shadow-lg"
-              >
-                <Eye className="w-5 h-5 animate-pulse" />
-                <span>View Parsed Details</span>
-              </button>
+              {/* View Details Icon */}
+              <div className="flex items-center justify-center">
+                <button
+                  onClick={() => {
+                    // Determine which page to navigate to based on endpoint URL
+                    const documentType = endpointUrl.includes('driving-licence')
+                      ? 'driving-licence'
+                      : 'passport';
+
+                    // Store webhook data for the detail page
+                    sessionStorage.setItem('webhookData', JSON.stringify(webhookPayload));
+                    sessionStorage.setItem('processedDocUrl', processedDocumentUrl);
+
+                    // Navigate to appropriate view page
+                    window.location.href = `/view/${documentType}`;
+                  }}
+                  className="p-3 rounded-full bg-purple-50 text-purple-600 hover:bg-purple-600 hover:text-white transition-all duration-200 hover:scale-110 group"
+                  title="View parsed document details"
+                >
+                  <Eye className="w-6 h-6 animate-pulse group-hover:animate-none" />
+                </button>
+              </div>
 
               <div className="bg-slate-50 rounded-lg p-4 max-h-[300px] overflow-auto">
                 <p className="text-sm font-medium text-slate-700 mb-2">Payload:</p>
