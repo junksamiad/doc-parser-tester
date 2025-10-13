@@ -3,7 +3,7 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { upload } from '@vercel/blob/client';
-import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle, Eye } from 'lucide-react';
+import { Upload, Send, CheckCircle, AlertCircle, FileText, FileImage, Loader2, X, Clock, Webhook, RefreshCw, Shuffle, Eye, Settings } from 'lucide-react';
 
 type SendMethod = 'base64' | 'formdata' | 'url';
 
@@ -41,6 +41,8 @@ export default function Home() {
   const [webhookUrl, setWebhookUrl] = useState<string>('https://doc-parser-tester.vercel.app/api/webhook');
   const [useProxy, setUseProxy] = useState<boolean>(true);
   const [useAWS, setUseAWS] = useState<boolean>(false);
+  const [documentPart, setDocumentPart] = useState<string>('');
+  const [showSettings, setShowSettings] = useState<boolean>(false);
   const [elapsedTime, setElapsedTime] = useState<number>(0);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const startTimeRef = useRef<number>(0);
@@ -244,6 +246,9 @@ export default function Home() {
         if (webhookUrl) {
           payload.webhookUrl = webhookUrl;
         }
+        if (documentPart) {
+          payload.documentPart = documentPart;
+        }
         if (useAWS) {
           payload.useAWS = useAWS;
         }
@@ -263,6 +268,9 @@ export default function Home() {
         if (webhookUrl) {
           formData.append('webhookUrl', webhookUrl);
         }
+        if (documentPart) {
+          formData.append('documentPart', documentPart);
+        }
         if (useAWS) {
           formData.append('useAWS', 'true');
         }
@@ -281,6 +289,9 @@ export default function Home() {
         }
         if (webhookUrl) {
           payload.webhookUrl = webhookUrl;
+        }
+        if (documentPart) {
+          payload.documentPart = documentPart;
         }
         if (useAWS) {
           payload.useAWS = useAWS;
@@ -520,7 +531,20 @@ export default function Home() {
           <div className="space-y-6">
             {/* API Configuration */}
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h2 className="text-lg font-semibold text-slate-900 mb-4">API Configuration</h2>
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-semibold text-slate-900">API Configuration</h2>
+                <button
+                  onClick={() => setShowSettings(!showSettings)}
+                  className={`p-2 rounded-lg transition-colors ${
+                    showSettings
+                      ? 'bg-blue-100 text-blue-600'
+                      : 'bg-slate-100 text-blue-600 hover:bg-blue-50'
+                  }`}
+                  title="Advanced settings"
+                >
+                  <Settings className="w-5 h-5" />
+                </button>
+              </div>
 
               <div className="space-y-4">
                 <div>
@@ -554,79 +578,98 @@ export default function Home() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Business ID (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={businessId}
-                    onChange={(e) => setBusinessId(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="customer-12345"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Optional identifier for your reference</p>
-                </div>
+                {/* Collapsible Advanced Settings */}
+                {showSettings && (
+                  <div className="space-y-4 pt-4 border-t border-slate-200">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Business ID (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={businessId}
+                        onChange={(e) => setBusinessId(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="customer-12345"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Optional identifier for your reference</p>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Request ID (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={requestId}
-                    onChange={(e) => setRequestId(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="req-abc-123"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Sent as x-request-id header for request tracking</p>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Request ID (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={requestId}
+                        onChange={(e) => setRequestId(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="req-abc-123"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Sent as x-request-id header for request tracking</p>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Webhook URL (optional)
-                  </label>
-                  <input
-                    type="text"
-                    value={webhookUrl}
-                    onChange={(e) => setWebhookUrl(e.target.value)}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    placeholder="https://your-server.com/webhook"
-                  />
-                  <p className="text-xs text-slate-500 mt-1">Pre-filled with local webhook endpoint - change if needed</p>
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Document Part (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={documentPart}
+                        onChange={(e) => setDocumentPart(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="front, back, or leave empty"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Specify which part of the document (e.g., front, back)</p>
+                    </div>
 
-                <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">Use Proxy (Avoid CORS)</p>
-                    <p className="text-xs text-slate-600 mt-0.5">Enable to bypass CORS restrictions when testing external APIs</p>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Webhook URL (optional)
+                      </label>
+                      <input
+                        type="text"
+                        value={webhookUrl}
+                        onChange={(e) => setWebhookUrl(e.target.value)}
+                        className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        placeholder="https://your-server.com/webhook"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Pre-filled with local webhook endpoint - change if needed</p>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900">Use Proxy (Avoid CORS)</p>
+                        <p className="text-xs text-slate-600 mt-0.5">Enable to bypass CORS restrictions when testing external APIs</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={useProxy}
+                          onChange={(e) => setUseProxy(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                      </label>
+                    </div>
+
+                    <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-slate-900">Use AWS Processing</p>
+                        <p className="text-xs text-slate-600 mt-0.5">Enable AWS-based document processing instead of default service</p>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={useAWS}
+                          onChange={(e) => setUseAWS(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
+                      </label>
+                    </div>
                   </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={useProxy}
-                      onChange={(e) => setUseProxy(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-                  </label>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                  <div className="flex-1">
-                    <p className="text-sm font-medium text-slate-900">Use AWS Processing</p>
-                    <p className="text-xs text-slate-600 mt-0.5">Enable AWS-based document processing instead of default service</p>
-                  </div>
-                  <label className="relative inline-flex items-center cursor-pointer">
-                    <input
-                      type="checkbox"
-                      checked={useAWS}
-                      onChange={(e) => setUseAWS(e.target.checked)}
-                      className="sr-only peer"
-                    />
-                    <div className="w-11 h-6 bg-gray-300 peer-focus:ring-4 peer-focus:ring-orange-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-orange-600"></div>
-                  </label>
-                </div>
+                )}
               </div>
             </div>
 
