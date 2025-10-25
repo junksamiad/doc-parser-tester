@@ -50,22 +50,21 @@ export default function Home() {
   const [isWaitingForWebhook, setIsWaitingForWebhook] = useState<boolean>(false);
   const [processedDocumentUrl, setProcessedDocumentUrl] = useState<string>('');
   const [isProduction, setIsProduction] = useState<boolean>(false);
-  const [localhostPort, setLocalhostPort] = useState<string>('3000');
 
-  // Update endpoint URL when switching between dev/prod or when port changes
+  // Update endpoint URL when switching between dev/prod
   useEffect(() => {
     const isPassport = endpointUrl.includes('passport');
     const documentType = isPassport ? 'passport' : 'driving-licence';
 
     const newUrl = isProduction
       ? `https://document-parser.easyrecruit.ai/api/v2/${documentType}`
-      : `http://localhost:${localhostPort}/api/v2/${documentType}`;
+      : `https://document-parser-dev.vercel.app/api/v2/${documentType}`;
 
     // Only update if the URL actually changed to prevent infinite loops
     if (endpointUrl !== newUrl) {
       setEndpointUrl(newUrl);
     }
-  }, [isProduction, localhostPort, endpointUrl]);
+  }, [isProduction, endpointUrl]);
 
   // Timer effect
   useEffect(() => {
@@ -612,32 +611,15 @@ export default function Home() {
                       </>
                     ) : (
                       <>
-                        <option value={`http://localhost:${localhostPort}/api/v2/passport`}>
-                          http://localhost:{localhostPort}/api/v2/passport
+                        <option value="https://document-parser-dev.vercel.app/api/v2/passport">
+                          https://document-parser-dev.vercel.app/api/v2/passport
                         </option>
-                        <option value={`http://localhost:${localhostPort}/api/v2/driving-licence`}>
-                          http://localhost:{localhostPort}/api/v2/driving-licence
+                        <option value="https://document-parser-dev.vercel.app/api/v2/driving-licence">
+                          https://document-parser-dev.vercel.app/api/v2/driving-licence
                         </option>
                       </>
                     )}
                   </select>
-
-                  {/* Localhost Port Input - Only show in Dev mode */}
-                  {!isProduction && (
-                    <div className="mt-3">
-                      <label className="block text-xs font-medium text-slate-600 mb-1">
-                        Localhost Port
-                      </label>
-                      <input
-                        type="text"
-                        value={localhostPort}
-                        onChange={(e) => setLocalhostPort(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                        placeholder="3000"
-                      />
-                      <p className="text-xs text-slate-500 mt-1">Changes update the URLs above in real-time</p>
-                    </div>
-                  )}
                 </div>
 
                 <div>
