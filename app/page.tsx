@@ -49,6 +49,23 @@ export default function Home() {
   const [isPolling, setIsPolling] = useState<boolean>(true);
   const [isWaitingForWebhook, setIsWaitingForWebhook] = useState<boolean>(false);
   const [processedDocumentUrl, setProcessedDocumentUrl] = useState<string>('');
+  const [isProduction, setIsProduction] = useState<boolean>(false);
+  const [localhostPort, setLocalhostPort] = useState<string>('3000');
+
+  // Update endpoint URL when switching between dev/prod or when port changes
+  useEffect(() => {
+    const isPassport = endpointUrl.includes('passport');
+    const documentType = isPassport ? 'passport' : 'driving-licence';
+
+    const newUrl = isProduction
+      ? `https://document-parser.easyrecruit.ai/api/v2/${documentType}`
+      : `http://localhost:${localhostPort}/api/v2/${documentType}`;
+
+    // Only update if the URL actually changed to prevent infinite loops
+    if (endpointUrl !== newUrl) {
+      setEndpointUrl(newUrl);
+    }
+  }, [isProduction, localhostPort, endpointUrl]);
 
   // Timer effect
   useEffect(() => {
@@ -557,21 +574,70 @@ export default function Home() {
 
               <div className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
-                    Document Type
-                  </label>
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Document Type
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium ${!isProduction ? 'text-blue-600' : 'text-slate-400'}`}>
+                        Dev
+                      </span>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={isProduction}
+                          onChange={(e) => setIsProduction(e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-blue-200 peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-blue-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-500"></div>
+                      </label>
+                      <span className={`text-xs font-medium ${isProduction ? 'text-green-600' : 'text-slate-400'}`}>
+                        Prod
+                      </span>
+                    </div>
+                  </div>
                   <select
                     value={endpointUrl}
                     onChange={(e) => setEndpointUrl(e.target.value)}
                     className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-sm"
                   >
-                    <option value="https://document-parser.easyrecruit.ai/api/v2/passport">
-                      https://document-parser.easyrecruit.ai/api/v2/passport
-                    </option>
-                    <option value="https://document-parser.easyrecruit.ai/api/v2/driving-licence">
-                      https://document-parser.easyrecruit.ai/api/v2/driving-licence
-                    </option>
+                    {isProduction ? (
+                      <>
+                        <option value="https://document-parser.easyrecruit.ai/api/v2/passport">
+                          https://document-parser.easyrecruit.ai/api/v2/passport
+                        </option>
+                        <option value="https://document-parser.easyrecruit.ai/api/v2/driving-licence">
+                          https://document-parser.easyrecruit.ai/api/v2/driving-licence
+                        </option>
+                      </>
+                    ) : (
+                      <>
+                        <option value={`http://localhost:${localhostPort}/api/v2/passport`}>
+                          http://localhost:{localhostPort}/api/v2/passport
+                        </option>
+                        <option value={`http://localhost:${localhostPort}/api/v2/driving-licence`}>
+                          http://localhost:{localhostPort}/api/v2/driving-licence
+                        </option>
+                      </>
+                    )}
                   </select>
+
+                  {/* Localhost Port Input - Only show in Dev mode */}
+                  {!isProduction && (
+                    <div className="mt-3">
+                      <label className="block text-xs font-medium text-slate-600 mb-1">
+                        Localhost Port
+                      </label>
+                      <input
+                        type="text"
+                        value={localhostPort}
+                        onChange={(e) => setLocalhostPort(e.target.value)}
+                        className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                        placeholder="3000"
+                      />
+                      <p className="text-xs text-slate-500 mt-1">Changes update the URLs above in real-time</p>
+                    </div>
+                  )}
                 </div>
 
                 <div>
