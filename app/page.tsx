@@ -608,6 +608,9 @@ export default function Home() {
                         <option value="https://document-parser.easyrecruit.ai/api/v2/driving-licence">
                           https://document-parser.easyrecruit.ai/api/v2/driving-licence
                         </option>
+                        <option value="https://document-parser.easyrecruit.ai/api/v2/proof-of-address">
+                          https://document-parser.easyrecruit.ai/api/v2/proof-of-address
+                        </option>
                       </>
                     ) : (
                       <>
@@ -616,6 +619,9 @@ export default function Home() {
                         </option>
                         <option value="https://document-parser-dev.vercel.app/api/v2/driving-licence">
                           https://document-parser-dev.vercel.app/api/v2/driving-licence
+                        </option>
+                        <option value="https://document-parser-dev.vercel.app/api/v2/proof-of-address">
+                          https://document-parser-dev.vercel.app/api/v2/proof-of-address
                         </option>
                       </>
                     )}
