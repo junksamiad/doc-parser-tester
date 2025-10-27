@@ -53,8 +53,14 @@ export default function Home() {
 
   // Update endpoint URL when switching between dev/prod
   useEffect(() => {
-    const isPassport = endpointUrl.includes('passport');
-    const documentType = isPassport ? 'passport' : 'driving-licence';
+    let documentType = 'passport';
+    if (endpointUrl.includes('proof-of-address')) {
+      documentType = 'proof-of-address';
+    } else if (endpointUrl.includes('driving-licence')) {
+      documentType = 'driving-licence';
+    } else if (endpointUrl.includes('passport')) {
+      documentType = 'passport';
+    }
 
     const newUrl = isProduction
       ? `https://document-parser.easyrecruit.ai/api/v2/${documentType}`
