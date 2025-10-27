@@ -488,9 +488,12 @@ export default function Home() {
                 <button
                   onClick={() => {
                     // Determine which page to navigate to based on endpoint URL
-                    const documentType = endpointUrl.includes('driving-licence')
-                      ? 'driving-licence'
-                      : 'passport';
+                    let documentType = 'passport';
+                    if (endpointUrl.includes('driving-licence')) {
+                      documentType = 'driving-licence';
+                    } else if (endpointUrl.includes('proof-of-address')) {
+                      documentType = 'proof-of-address';
+                    }
 
                     // Store webhook data for the detail page
                     sessionStorage.setItem('webhookData', JSON.stringify(webhookPayload));
