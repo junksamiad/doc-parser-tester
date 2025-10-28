@@ -54,7 +54,9 @@ export default function Home() {
   // Update endpoint URL when switching between dev/prod
   useEffect(() => {
     let documentType = 'passport';
-    if (endpointUrl.includes('proof-of-address')) {
+    if (endpointUrl.includes('overseas-police-check')) {
+      documentType = 'overseas-police-check';
+    } else if (endpointUrl.includes('proof-of-address')) {
       documentType = 'proof-of-address';
     } else if (endpointUrl.includes('driving-licence')) {
       documentType = 'driving-licence';
@@ -495,7 +497,9 @@ export default function Home() {
                   onClick={() => {
                     // Determine which page to navigate to based on endpoint URL
                     let documentType = 'passport';
-                    if (endpointUrl.includes('driving-licence')) {
+                    if (endpointUrl.includes('overseas-police-check')) {
+                      documentType = 'overseas-police-check';
+                    } else if (endpointUrl.includes('driving-licence')) {
                       documentType = 'driving-licence';
                     } else if (endpointUrl.includes('proof-of-address')) {
                       documentType = 'proof-of-address';
@@ -620,6 +624,9 @@ export default function Home() {
                         <option value="https://document-parser.easyrecruit.ai/api/v2/proof-of-address">
                           https://document-parser.easyrecruit.ai/api/v2/proof-of-address
                         </option>
+                        <option value="https://document-parser.easyrecruit.ai/api/v2/overseas-police-check">
+                          https://document-parser.easyrecruit.ai/api/v2/overseas-police-check
+                        </option>
                       </>
                     ) : (
                       <>
@@ -631,6 +638,9 @@ export default function Home() {
                         </option>
                         <option value="https://document-parser-dev.vercel.app/api/v2/proof-of-address">
                           https://document-parser-dev.vercel.app/api/v2/proof-of-address
+                        </option>
+                        <option value="https://document-parser-dev.vercel.app/api/v2/overseas-police-check">
+                          https://document-parser-dev.vercel.app/api/v2/overseas-police-check
                         </option>
                       </>
                     )}

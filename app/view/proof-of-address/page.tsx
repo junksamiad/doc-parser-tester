@@ -154,29 +154,42 @@ export default function ProofOfAddressViewPage() {
     );
   };
 
-  // Special renderer for document_provider with nested utility_provider structure
-  const DocumentProviderSection = ({
+  // Get provider type label and color
+  const getProviderTypeInfo = (providerType: string) => {
+    const typeMap: Record<string, { label: string; bgColor: string; borderColor: string }> = {
+      utility_provider: { label: 'Utility Provider', bgColor: 'bg-indigo-50', borderColor: 'border-indigo-200' },
+      council_provider: { label: 'Council Provider', bgColor: 'bg-purple-50', borderColor: 'border-purple-200' },
+      banking_provider: { label: 'Banking Provider', bgColor: 'bg-green-50', borderColor: 'border-green-200' },
+      government_provider: { label: 'Government Provider', bgColor: 'bg-amber-50', borderColor: 'border-amber-200' },
+      tenancy_provider: { label: 'Tenancy Provider', bgColor: 'bg-rose-50', borderColor: 'border-rose-200' },
+      employment_provider: { label: 'Employment Provider', bgColor: 'bg-cyan-50', borderColor: 'border-cyan-200' },
+      other_provider: { label: 'Other Provider', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' },
+    };
+    return typeMap[providerType] || { label: 'Provider', bgColor: 'bg-gray-50', borderColor: 'border-gray-200' };
+  };
+
+  // Special renderer for document_providers with discriminated union
+  const DocumentProvidersSection = ({
     data,
   }: {
-    data: Record<string, unknown>;
+    data: unknown[];
   }) => {
-    const isExpanded = expandedSections.has('document_provider');
-    const utilityProvider = data.utility_provider as Record<string, unknown> | undefined;
-    const hasData = utilityProvider && Object.keys(utilityProvider).length > 0;
+    const isExpanded = expandedSections.has('document_providers');
+    const hasData = data && Array.isArray(data) && data.length > 0;
 
     return (
       <div className="bg-indigo-50 rounded-xl shadow-sm border border-indigo-200 overflow-hidden">
         <button
           className="w-full px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors"
-          onClick={() => toggleSection('document_provider')}
+          onClick={() => toggleSection('document_providers')}
         >
           <div className="flex items-center gap-3">
             <Building2 className="w-5 h-5 text-indigo-600" />
             <h3 className="text-lg font-semibold text-gray-900">
-              Document Provider
+              Document Providers
               {hasData && (
                 <span className="ml-2 text-xs font-normal text-green-600 bg-green-50 px-2 py-1 rounded">
-                  ✓ Extracted
+                  ✓ {data.length} provider{data.length > 1 ? 's' : ''} detected
                 </span>
               )}
             </h3>
@@ -186,29 +199,45 @@ export default function ProofOfAddressViewPage() {
 
         {isExpanded && (
           <div className="px-6 pb-6 pt-2">
-            {hasData && utilityProvider ? (
+            {hasData ? (
               <div className="space-y-4">
-                {Object.entries(utilityProvider).map(([key, valueObj]) => {
-                  if (!valueObj || typeof valueObj !== 'object') return null;
-
-                  const { value, data_check } = valueObj as { value: unknown; data_check?: unknown };
+                {data.map((provider, idx) => {
+                  const providerObj = provider as Record<string, unknown>;
+                  const providerType = providerObj.provider_type as string;
+                  const typeInfo = getProviderTypeInfo(providerType);
 
                   return (
-                    <div key={key} className="border-b border-gray-100 pb-3 last:border-0">
-                      <div className="font-medium text-gray-700 mb-2">
-                        {key
-                          .replace(/_/g, ' ')
-                          .replace(/\b\w/g, (c) => c.toUpperCase())}
+                    <div key={idx} className={`${typeInfo.bgColor} border ${typeInfo.borderColor} rounded-lg p-4`}>
+                      <h4 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                        <Building2 className="w-4 h-4" />
+                        {typeInfo.label}
+                      </h4>
+                      <div className="space-y-3">
+                        {Object.entries(providerObj).map(([key, valueObj]) => {
+                          // Skip the discriminator field
+                          if (key === 'provider_type') return null;
+                          if (!valueObj || typeof valueObj !== 'object') return null;
+
+                          const { value, data_check } = valueObj as { value: unknown; data_check?: unknown };
+
+                          return (
+                            <div key={key} className="border-b border-gray-100 pb-2 last:border-0">
+                              <div className="font-medium text-gray-700 mb-1 text-sm">
+                                {key
+                                  .replace(/_/g, ' ')
+                                  .replace(/\b\w/g, (c) => c.toUpperCase())}
+                              </div>
+                              <div className="text-gray-900 mb-1">{renderValue(value)}</div>
+                              {data_check !== null && data_check !== undefined && (
+                                <div className="mt-1 p-2 bg-blue-50 rounded text-xs text-blue-800">
+                                  <span className="font-medium">Evidence: </span>
+                                  {typeof data_check === 'string' ? data_check : renderValue(data_check)}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
                       </div>
-                      <div className="text-gray-900 mb-1">{renderValue(value)}</div>
-                      {data_check !== null && data_check !== undefined && (
-                        <div className="mt-2 p-2 bg-blue-50 rounded text-xs text-blue-800">
-                          <span className="font-medium">Evidence: </span>
-                          {typeof data_check === 'string'
-                            ? data_check
-                            : renderValue(data_check)}
-                        </div>
-                      )}
                     </div>
                   );
                 })}
@@ -471,10 +500,10 @@ export default function ProofOfAddressViewPage() {
             />
           )}
 
-          {/* Document Provider */}
-          {attributeTypes.document_provider !== null && attributeTypes.document_provider !== undefined && (
-            <DocumentProviderSection
-              data={attributeTypes.document_provider as Record<string, unknown>}
+          {/* Document Providers */}
+          {attributeTypes.document_providers !== null && attributeTypes.document_providers !== undefined && (
+            <DocumentProvidersSection
+              data={attributeTypes.document_providers as unknown[]}
             />
           )}
 
