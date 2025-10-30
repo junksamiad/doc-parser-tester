@@ -60,6 +60,10 @@ export default function Home() {
       documentType = 'proof-of-address';
     } else if (endpointUrl.includes('driving-licence')) {
       documentType = 'driving-licence';
+    } else if (endpointUrl.includes('bank-statement')) {
+      documentType = 'bank-statement';
+    } else if (endpointUrl.includes('cv')) {
+      documentType = 'cv';
     } else if (endpointUrl.includes('passport')) {
       documentType = 'passport';
     }
@@ -503,6 +507,10 @@ export default function Home() {
                       documentType = 'driving-licence';
                     } else if (endpointUrl.includes('proof-of-address')) {
                       documentType = 'proof-of-address';
+                    } else if (endpointUrl.includes('bank-statement')) {
+                      documentType = 'bank-statement';
+                    } else if (endpointUrl.includes('cv')) {
+                      documentType = 'cv';
                     }
 
                     // Store webhook data for the detail page
@@ -627,6 +635,12 @@ export default function Home() {
                         <option value="https://document-parser.easyrecruit.ai/api/v2/overseas-police-check">
                           https://document-parser.easyrecruit.ai/api/v2/overseas-police-check
                         </option>
+                        <option value="https://document-parser.easyrecruit.ai/api/v2/cv">
+                          https://document-parser.easyrecruit.ai/api/v2/cv
+                        </option>
+                        <option value="https://document-parser.easyrecruit.ai/api/v2/bank-statement">
+                          https://document-parser.easyrecruit.ai/api/v2/bank-statement
+                        </option>
                       </>
                     ) : (
                       <>
@@ -641,6 +655,12 @@ export default function Home() {
                         </option>
                         <option value="https://document-parser-dev.vercel.app/api/v2/overseas-police-check">
                           https://document-parser-dev.vercel.app/api/v2/overseas-police-check
+                        </option>
+                        <option value="https://document-parser-dev.vercel.app/api/v2/cv">
+                          https://document-parser-dev.vercel.app/api/v2/cv
+                        </option>
+                        <option value="https://document-parser-dev.vercel.app/api/v2/bank-statement">
+                          https://document-parser-dev.vercel.app/api/v2/bank-statement
                         </option>
                       </>
                     )}
